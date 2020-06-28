@@ -1,5 +1,10 @@
 import 'package:meta/meta.dart';
 
+abstract class ComponentParser<T> {
+  String get component;
+  T parse(Map<String, dynamic> data);
+}
+
 /// Parsed class of the Story contents.
 class Story {
   /// The name of the Story.
@@ -96,7 +101,9 @@ class Story {
     return Story(
       name: json['name'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
-      publishedAt: DateTime.parse(json['published_at'] as String),
+      publishedAt: json['published_at'] != null
+          ? DateTime.parse(json['published_at'] as String)
+          : null,
       alternates: List.from(json['alternates']),
       id: json['id'] as int,
       uuid: json['uuid'] as String,
@@ -110,8 +117,10 @@ class Story {
       parentId: json['parent_id'] as int,
       metaData: json['meta_data'],
       groupId: json['group_id'] as String,
-      firstPublishedAt: DateTime.parse(json['first_published_at'] as String),
-      realeaseId: json['realease_id'] as String,
+      firstPublishedAt: json['first_published_at'] != null
+          ? DateTime.parse(json['first_published_at'] as String)
+          : null,
+      realeaseId: json['release_id'] as String,
       lang: json['lang'] as String,
       path: json['path'] as String,
       translatedSlugs: List<String>.from(json['translated_slugs']),

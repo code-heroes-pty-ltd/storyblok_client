@@ -120,7 +120,7 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-like
   factory FilterQuery.like({
-    @required attribute,
+    @required String attribute,
     @required String value,
   }) {
     return FilterQuery._(
@@ -136,7 +136,7 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-not-like
   factory FilterQuery.notLike({
-    @required attribute,
+    @required String attribute,
     @required String value,
   }) {
     return FilterQuery._(

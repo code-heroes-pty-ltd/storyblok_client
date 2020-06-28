@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:enum_to_string/enum_to_string.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
 import 'filter_query.dart';
+import 'request_builder.dart';
 import 'resolve_relations.dart';
 import 'sort_by.dart';
 import 'story_model.dart';
@@ -70,10 +70,21 @@ class StoryblokClient {
     }
 
     final uri = Uri.https(_base, '/v1/cdn/$path', parameters);
-    final response = await http.get(uri);
+    http.Response response;
+
+    try {
+      response = await http.get(uri);
+    } on Exception catch (e) {
+      print(e);
+      throw Exception(
+        'Cannot perform http request to Storyblok. Check error logs above.',
+      );
+    }
 
     if (response.statusCode != 200) {
-      print(("Invalid response from Storyblok: ${response.statusCode}"));
+      throw Exception(
+        'Invalid http response code from Storyblok: ${response.statusCode}',
+      );
     }
 
     return response;
@@ -86,6 +97,25 @@ class StoryblokClient {
     final body = json.decode(response.body);
 
     _cacheVersion = body['space']['version'].toString();
+  }
+
+  Future<StoryblokResponse> _fetchStories(
+    RequestBuilder builder, [
+    bool multiple = false,
+  ]) async {
+    final response = await _get(builder.path, parameters: builder.parameters);
+    final body = json.decode(response.body);
+    List<Story> stories;
+
+    if (multiple) {
+      final data = List<Map<String, dynamic>>.from(body['stories']);
+      stories = data.map((json) => Story.fromJson(json)).toList();
+    } else {
+      final story = Story.fromJson(body['story'] as Map<String, dynamic>);
+      stories = <Story>[]..add(story);
+    }
+
+    return StoryblokResponse(response, stories);
   }
 
   /// Fetches a single Story.
@@ -101,50 +131,30 @@ class StoryblokClient {
     List<ResolveRelations> resolveRelations,
     String fromRelease,
     String language,
-    String fallbackLanguage,
+    String fallbackLang,
   }) async {
+    OneRequestBuilder builder;
     if (fullSlug != null) {
       assert(id == null && uuid == null);
+      builder = OneRequestBuilder.fullSlug(fullSlug);
     } else if (id != null) {
       assert(fullSlug == null && uuid == null);
+      builder = OneRequestBuilder.id(id);
     } else if (uuid != null) {
       assert(fullSlug == null && id == null);
+      builder = OneRequestBuilder.uuid(uuid);
+    } else {
+      throw Exception('No path provided with either fullSlug, id or uuid.');
     }
 
-    final path = StringBuffer('stories/');
-    if (fullSlug != null) path.write(fullSlug);
-    if (id != null) path.write(id);
-    if (uuid != null) path.write(uuid);
+    if (version != null) builder.version(version);
+    if (resolveLinks != null) builder.resolveLinks(resolveLinks);
+    if (resolveRelations != null) builder.resolveRelations(resolveRelations);
+    if (fromRelease != null) builder.fromRelease(fromRelease);
+    if (language != null) builder.language(language);
+    if (fallbackLang != null) builder.fallbackLang(fallbackLang);
 
-    final parameters = <String, String>{};
-    if (uuid != null) parameters['find_by'] = 'uuid';
-    if (version != null) parameters['version'] = EnumToString.parse(version);
-    if (resolveLinks != null) {
-      parameters['resolve_links'] = resolveLinks.toString();
-    }
-    if (resolveRelations != null) {
-      parameters['resolve_relations'] = resolveRelations.fold<String>(
-        '',
-        (
-          previous,
-          current,
-        ) =>
-            previous += '${current.componentName}.${current.fieldName},',
-      );
-    }
-    if (fromRelease != null) parameters['from_release'] = fromRelease;
-    if (language != null) parameters['language'] = language;
-    if (fallbackLanguage != null) {
-      parameters['fallback_language'] = fallbackLanguage;
-    }
-
-    final response = await _get(path.toString(), parameters: parameters);
-    final body = json.decode(response.body);
-
-    final story = Story.fromJson(body['story'] as Map<String, dynamic>);
-    final stories = <Story>[]..add(story);
-
-    return StoryblokResponse(response, stories);
+    return _fetchStories(builder);
   }
 
   /// Fetches multiple stories.
@@ -170,75 +180,25 @@ class StoryblokClient {
     int page,
     int perPage,
   }) async {
-    final parameters = <String, String>{};
-    if (startsWith != null) parameters['starts_with'] = startsWith;
-    if (byUuids != null) {
-      parameters['by_uuids'] = byUuids.reduce(
-        (previous, current) => previous += ',$current',
-      );
-    }
-    if (fallbackLang != null) parameters['fallback_lang'] = fallbackLang;
-    if (byUuidsOrdered != null) {
-      parameters['by_uuids_ordered'] =
-          byUuidsOrdered.reduce((previous, current) => previous += ',$current');
-    }
-    if (excludingIds != null) {
-      parameters['excluding_ids'] =
-          excludingIds.reduce((previous, current) => previous += ',$current');
-    }
-    if (excludingFields != null) {
-      parameters['excluding_fields'] = excludingFields.reduce((
-        previous,
-        current,
-      ) =>
-          previous += ',$current');
-    }
-    if (version != null) parameters['version'] = EnumToString.parse(version);
-    if (resolveLinks != null) {
-      parameters['resolve_links'] = resolveLinks.toString();
-    }
-    if (resolveRelations != null) {
-      parameters['resolve_relations'] = resolveRelations.fold<String>(
-        '',
-        (
-          previous,
-          current,
-        ) =>
-            previous += '${current.componentName}.${current.fieldName},',
-      );
-    }
-    if (fromRelease != null) parameters['from_release'] = fromRelease;
-    if (sortBy != null) {
-      String sort;
-      if (sortBy.attributeField != null) {
-        sort = sortBy.attributeField;
-      } else {
-        sort = 'content.${sortBy.contentField}';
-      }
-      if (sortBy.order != null) sort += ':${EnumToString.parse(sortBy.order)}';
-      if (sortBy.type != null) sort += ':${EnumToString.parse(sortBy.type)}';
+    final builder = MultipleRequestBuilder();
 
-      parameters['sort_by'] = sort;
-    }
-    if (searchTerm != null) parameters['search_term'] = searchTerm;
-    if (filterQueries != null) {
-      for (final filter in filterQueries) {
-        parameters['filter_query[${filter.attribute}][${filter.operation}]'] =
-            filter.value.toString();
-      }
-    }
-    if (isStartPage != null) {
-      parameters['is_startpage'] = isStartPage ? '1' : '0';
-    }
-    if (page != null) parameters['page'] = page.toString();
-    if (perPage != null) parameters['per_page'] = perPage.toString();
+    if (startsWith != null) builder.startsWith(startsWith);
+    if (byUuids != null) builder.byUuids(byUuids);
+    if (fallbackLang != null) builder.fallbackLang(fallbackLang);
+    if (byUuidsOrdered != null) builder.byUuidsOrdered(byUuidsOrdered);
+    if (excludingIds != null) builder.excludingIds(excludingIds);
+    if (excludingFields != null) builder.excludingFields(excludingFields);
+    if (version != null) builder.version(version);
+    if (resolveLinks != null) builder.resolveLinks(resolveLinks);
+    if (resolveRelations != null) builder.resolveRelations(resolveRelations);
+    if (fromRelease != null) builder.fromRelease(fromRelease);
+    if (sortBy != null) builder.sortBy(sortBy);
+    if (searchTerm != null) builder.searchTerm(searchTerm);
+    if (filterQueries != null) builder.filterQueries(filterQueries);
+    if (isStartPage != null) builder.isStartPage(isStartPage);
+    if (page != null) builder.page(page);
+    if (perPage != null) builder.perPage(perPage);
 
-    final response = await _get('stories', parameters: parameters);
-
-    final body = json.decode(response.body);
-    final data = List<Map<String, dynamic>>.from(body['stories']);
-    final stories = data.map((json) => Story.fromJson(json)).toList();
-
-    return StoryblokResponse(response, stories);
+    return _fetchStories(builder, true);
   }
 }
