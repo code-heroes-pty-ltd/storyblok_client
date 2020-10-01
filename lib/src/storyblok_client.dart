@@ -230,6 +230,11 @@ class StoryblokClient {
     if (isStartPage != null) {
       parameters['is_startpage'] = isStartPage ? '1' : '0';
     }
+    if(withTag != null) {
+      parameters['with_tag'] = withTag.reduce(
+            (previous, current) => previous += ',$current',
+      );
+    }
     if (page != null) parameters['page'] = page.toString();
     if (perPage != null) parameters['per_page'] = perPage.toString();
 
