@@ -1,5 +1,3 @@
-import 'package:meta/meta.dart';
-
 /// Resolve relationships to other Stories of a multi-option or single-option
 /// field-type. The limit of resolved relationships is 100 Stories.
 ///
@@ -14,8 +12,7 @@ class ResolveRelations {
 
   /// Resolve the relationships to the [fieldName] in [componentName].
   const ResolveRelations({
-    @required this.componentName,
-    @required this.fieldName,
-  })  : assert(componentName != null),
-        assert(fieldName != null);
+    required this.componentName,
+    required this.fieldName,
+  });
 }

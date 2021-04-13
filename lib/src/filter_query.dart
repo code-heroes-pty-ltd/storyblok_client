@@ -1,6 +1,5 @@
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:intl/intl.dart';
-import 'package:meta/meta.dart';
 import 'package:recase/recase.dart';
 
 /// The different values for [FilterQuery.ensure].
@@ -48,7 +47,7 @@ class FilterQuery {
   static String _formatDateTime(DateTime value) => _dateFormat.format(value);
 
   static String _transformEnsureType(EnsureType value) =>
-      ReCase(EnumToString.parse(value)).snakeCase;
+      ReCase(EnumToString.convertToString(value)).snakeCase;
 
   /// The field (or attribute) to filter by.
   final String attribute;
@@ -63,17 +62,15 @@ class FilterQuery {
     this.attribute,
     this.operation,
     this.value,
-  )   : assert(attribute != null),
-        assert(operation != null),
-        assert(value != null);
+  )   : assert(value != null);
 
   /// Checks for empty or not empty values and booleans. For strings the value
   /// can be [EnsureType.emptyArray] or [EnsureType.notEmptyString]. For
   /// arrays use [EnsureType.emptyArray] or [EnsureType.notEmptyArray]. For
   /// booleans use [EnsureType.trueBoolean] or [EnsureType.falseBoolean].
   factory FilterQuery.ensure({
-    @required String attribute,
-    @required EnsureType value,
+    required String attribute,
+    required EnsureType value,
   }) {
     return FilterQuery._(
       attribute,
@@ -88,8 +85,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-in
   factory FilterQuery.contains({
-    @required String attribute,
-    @required String value,
+    required String attribute,
+    required String value,
   }) {
     return FilterQuery._(
       attribute,
@@ -104,8 +101,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-not-in
   factory FilterQuery.notIn({
-    @required String attribute,
-    @required String value,
+    required String attribute,
+    required String value,
   }) {
     return FilterQuery._(
       attribute,
@@ -120,8 +117,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-like
   factory FilterQuery.like({
-    @required attribute,
-    @required String value,
+    required attribute,
+    required String value,
   }) {
     return FilterQuery._(
       attribute,
@@ -136,8 +133,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-not-like
   factory FilterQuery.notLike({
-    @required attribute,
-    @required String value,
+    required attribute,
+    required String value,
   }) {
     return FilterQuery._(
       attribute,
@@ -153,8 +150,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-all-in-array
   factory FilterQuery.allInArray({
-    @required String attribute,
-    @required List<String> value,
+    required String attribute,
+    required List<String> value,
   }) {
     return FilterQuery._(
       attribute,
@@ -170,8 +167,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-in-array
   factory FilterQuery.inArray({
-    @required String attribute,
-    @required List<String> value,
+    required String attribute,
+    required List<String> value,
   }) {
     return FilterQuery._(
       attribute,
@@ -187,8 +184,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-gt-date
   factory FilterQuery.greaterThanDate({
-    @required String attribute,
-    @required DateTime value,
+    required String attribute,
+    required DateTime value,
   }) {
     return FilterQuery._(
       attribute,
@@ -204,8 +201,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-gt-date
   factory FilterQuery.lessThanDate({
-    @required String attribute,
-    @required DateTime value,
+    required String attribute,
+    required DateTime value,
   }) {
     return FilterQuery._(
       attribute,
@@ -221,8 +218,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-gt-int
   factory FilterQuery.greaterThanInt({
-    @required String attribute,
-    @required int value,
+    required String attribute,
+    required int value,
   }) {
     return FilterQuery._(
       attribute,
@@ -238,8 +235,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-lt-int
   factory FilterQuery.lessThanInt({
-    @required String attribute,
-    @required int value,
+    required String attribute,
+    required int value,
   }) {
     return FilterQuery._(
       attribute,
@@ -255,8 +252,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-gt-float
   factory FilterQuery.greaterThanFloat({
-    @required String attribute,
-    @required double value,
+    required String attribute,
+    required double value,
   }) {
     return FilterQuery._(
       attribute,
@@ -272,8 +269,8 @@ class FilterQuery {
   /// See an example from the official documentation:
   /// https://www.storyblok.com/docs/api/content-delivery#filter-queries/operation-lt-float
   factory FilterQuery.lessThanFloat({
-    @required String attribute,
-    @required double value,
+    required String attribute,
+    required double value,
   }) {
     return FilterQuery._(
       attribute,

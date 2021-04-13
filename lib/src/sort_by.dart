@@ -1,5 +1,3 @@
-import 'package:meta/meta.dart';
-
 /// Sort entries by specific attribute and order.
 ///
 /// Possible values are all attributes of the entry and all fields of your
@@ -9,16 +7,16 @@ import 'package:meta/meta.dart';
 /// with numeric values the sort [type] must be provided
 class SortBy {
   /// The field to sort by in the auto-generated fields in the Story object.
-  final String attributeField;
+  final String? attributeField;
 
   /// The field to sort by in the Story content type.
-  final String contentField;
+  final String? contentField;
 
   /// The sort order.
-  final SortOrder order;
+  final SortOrder? order;
 
   /// The sort type, by default [SortType.string].
-  final SortType type;
+  final SortType? type;
 
   /// Use [SortBy.attribute] and [SortBy.content] going forward.
   @deprecated
@@ -32,19 +30,17 @@ class SortBy {
 
   /// Sort by the auto-generated [attributeField] in the Story object.
   const SortBy.attribute({
-    @required this.attributeField,
+    required String this.attributeField,
     this.order,
     this.type,
-  })  : contentField = null,
-        assert(attributeField != null);
+  })  : contentField = null;
 
   /// Sort by the [contentField] in the Story conetent type.
   const SortBy.content({
-    @required this.contentField,
+    required String this.contentField,
     this.order,
     this.type,
-  })  : attributeField = null,
-        assert(contentField != null);
+  })  : attributeField = null;
 
   /// Shorthand contrustuor for using the sorting provided by the user in the
   /// Storyblok admin interface.

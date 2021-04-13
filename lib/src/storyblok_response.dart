@@ -1,4 +1,5 @@
 import 'package:http/http.dart' as http;
+
 import 'story_model.dart';
 
 /// Reponse containing the fetched stories and additional data about the http
@@ -23,11 +24,11 @@ class StoryblokResponse {
 
   /// The total number of available entries to fetch. Comes from the `Total`
   /// header and only exists if the request has been paginated.
-  int get total => int.tryParse(response.headers['total']) ?? 0;
+  int? get total => int.tryParse(response.headers['total']!);
 
   /// The amount of fetched entries in the last request. Comes from the
   /// `Per-Page` header and only exists if the request has been paginated.
-  int get perPage => int.tryParse(response.headers['per-page']) ?? 0;
+  int? get perPage => int.tryParse(response.headers['per-page']!);
 
   /// Shorthand getter for the first story. Usefull if only a single story has
   /// been fetched with [StoryblokClient.fetchOne]

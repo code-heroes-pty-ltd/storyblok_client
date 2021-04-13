@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 
 import 'filter_query.dart';
 import 'resolve_relations.dart';
@@ -26,7 +25,7 @@ class StoryblokClient {
   final String _token;
   final bool _autoCacheInvalidation;
 
-  String _cacheVersion;
+  String? _cacheVersion;
 
   /// Construct a new client for accessing Storyblok.
   ///
@@ -35,15 +34,14 @@ class StoryblokClient {
   /// manually at appropriate stages in the project, use the
   /// [StoryblokClient.invalidateCacheVersion] method.
   StoryblokClient({
-    @required String token,
+    required String token,
     bool autoCacheInvalidation = false,
-  })  : assert(token != null),
-        _token = token,
+  })  : _token = token,
         _autoCacheInvalidation = autoCacheInvalidation;
 
   Future<http.Response> _get(
     String path, {
-    Map<String, String> parameters,
+    Map<String, String?>? parameters,
     bool ignoreCacheVersion = false,
   }) async {
     if (parameters == null) {
@@ -93,15 +91,15 @@ class StoryblokClient {
   /// See https://www.storyblok.com/docs/api/content-delivery#core-resources/stories/retrieve-one-story
   /// for more details.
   Future<StoryblokResponse> fetchOne({
-    String fullSlug,
-    String id,
-    String uuid,
-    StoryVersion version,
-    bool resolveLinks,
-    List<ResolveRelations> resolveRelations,
-    String fromRelease,
-    String language,
-    String fallbackLanguage,
+    String? fullSlug,
+    String? id,
+    String? uuid,
+    StoryVersion? version,
+    bool? resolveLinks,
+    List<ResolveRelations>? resolveRelations,
+    String? fromRelease,
+    String? language,
+    String? fallbackLanguage,
   }) async {
     if (fullSlug != null) {
       assert(id == null && uuid == null);
@@ -152,25 +150,25 @@ class StoryblokClient {
   /// See https://www.storyblok.com/docs/api/content-delivery#core-resources/stories/retrieve-multiple-stories
   /// for more details.
   Future<StoryblokResponse> fetchMultiple({
-    String startsWith,
-    List<String> byUuids,
-    String fallbackLang,
-    List<String> byUuidsOrdered,
-    List<String> excludingIds,
-    List<String> excludingFields,
-    StoryVersion version,
-    bool resolveLinks,
-    List<ResolveRelations> resolveRelations,
-    String fromRelease,
-    SortBy sortBy,
-    String searchTerm,
-    List<FilterQuery> filterQueries,
-    bool isStartPage,
-    List<String> withTag,
-    int page,
-    int perPage,
+    String? startsWith,
+    List<String>? byUuids,
+    String? fallbackLang,
+    List<String>? byUuidsOrdered,
+    List<String>? excludingIds,
+    List<String>? excludingFields,
+    StoryVersion? version,
+    bool? resolveLinks,
+    List<ResolveRelations>? resolveRelations,
+    String? fromRelease,
+    SortBy? sortBy,
+    String? searchTerm,
+    List<FilterQuery>? filterQueries,
+    bool? isStartPage,
+    List<String>? withTag,
+    int? page,
+    int? perPage,
   }) async {
-    final parameters = <String, String>{};
+    final parameters = <String, String?>{};
     if (startsWith != null) parameters['starts_with'] = startsWith;
     if (byUuids != null) {
       parameters['by_uuids'] = byUuids.reduce(
@@ -211,12 +209,16 @@ class StoryblokClient {
     if (sortBy != null) {
       String sort;
       if (sortBy.attributeField != null) {
-        sort = sortBy.attributeField;
+        sort = sortBy.attributeField!;
       } else {
         sort = 'content.${sortBy.contentField}';
       }
-      if (sortBy.order != null) sort += ':${EnumToString.parse(sortBy.order)}';
-      if (sortBy.type != null) sort += ':${EnumToString.parse(sortBy.type)}';
+      if (sortBy.order != null) {
+        sort += ':${EnumToString.convertToString(sortBy.order)}';
+      }
+      if (sortBy.type != null) {
+        sort += ':${EnumToString.convertToString(sortBy.type)}';
+      }
 
       parameters['sort_by'] = sort;
     }
